@@ -1,0 +1,5 @@
+import { ImgHTMLAttributes } from 'react';
+
+export default function AppLogoIcon(props: ImgHTMLAttributes<HTMLImageElement>) {
+    return <img src="/images/novee1.png" alt="Novee Logo" {...props} />;
+}
