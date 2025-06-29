@@ -54,7 +54,7 @@ export default function CategoriesIndex({ categories }: CategoryPageProps) {
                         <div className="flex items-center justify-between">
                             <h1 className="text-xl font-semibold">Categories</h1>
                             <DialogTrigger asChild>
-                                <Button>Add Category</Button>
+                                <Button>Add a Category</Button>
                             </DialogTrigger>
                         </div>
                     )}
