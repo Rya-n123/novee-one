@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { type Category, type PageProps } from '@/types';
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { route } from 'ziggy-js';
@@ -42,6 +42,7 @@ export default function CategoriesIndex({ categories }: CategoryPageProps) {
             <Head title="Categories" />
 
             <div className="space-y-4 p-4">
+                {/* Add Category Dialog */}
                 <Dialog>
                     {categories.length === 0 ? (
                         <div className="flex h-[60vh] flex-col items-center justify-center space-y-4">
@@ -78,7 +79,6 @@ export default function CategoriesIndex({ categories }: CategoryPageProps) {
                             </DialogFooter>
                         </form>
 
-                        {/* Live category preview inside dialog */}
                         <div className="mt-6">
                             <h3 className="text-sm font-medium text-gray-700">Existing Categories:</h3>
                             <ul className="mt-2 max-h-40 list-disc overflow-y-auto pl-5 text-sm text-gray-600">
@@ -90,49 +90,91 @@ export default function CategoriesIndex({ categories }: CategoryPageProps) {
                     </DialogContent>
                 </Dialog>
 
-                {/* Only render cards if there are categories */}
+                {/* Render Categories */}
                 {categories.length > 0 && (
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                         {categories.map((category) => (
-                            <Card key={category.id}>
-                                <CardContent className="py-4">
-                                    <p className="font-medium">{category.name}</p>
-                                </CardContent>
-                                <CardFooter className="flex justify-end gap-2">
-                                    <TooltipWrapper label="Edit category">
-                                        <Button variant="outline" asChild>
-                                            <Link href={`/categories/${category.id}/edit`}>Edit</Link>
-                                        </Button>
-                                    </TooltipWrapper>
-                                    <TooltipWrapper label="Delete category">
-                                        <Button
-                                            variant="destructive"
-                                            onClick={() => {
-                                                toast.warning('Are you sure you want to delete this category?', {
-                                                    id: `delete-${category.id}`,
-                                                    action: {
-                                                        label: 'Delete',
-                                                        onClick: () =>
-                                                            router.delete(route('categories.destroy', category.id), {
-                                                                onSuccess: () => toast.success('Category deleted successfully.'),
-                                                            }),
-                                                    },
-                                                    cancel: {
-                                                        label: 'Cancel',
-                                                        onClick: () => toast.dismiss(`delete-${category.id}`),
-                                                    },
-                                                });
-                                            }}
-                                        >
-                                            Delete
-                                        </Button>
-                                    </TooltipWrapper>
-                                </CardFooter>
-                            </Card>
+                            <Dialog key={category.id}>
+                                <Card>
+                                    <CardContent className="py-4">
+                                        <p className="font-medium">{category.name}</p>
+                                    </CardContent>
+                                    <CardFooter className="flex justify-end gap-2">
+                                        {/* Edit Button with Dialog */}
+                                        <TooltipWrapper label="Edit category">
+                                            <DialogTrigger asChild>
+                                                <Button variant="outline">Edit</Button>
+                                            </DialogTrigger>
+                                        </TooltipWrapper>
+
+                                        {/* Delete Button */}
+                                        <TooltipWrapper label="Delete category">
+                                            <Button
+                                                variant="destructive"
+                                                onClick={() => {
+                                                    toast.warning('Are you sure you want to delete this category?', {
+                                                        id: `delete-${category.id}`,
+                                                        action: {
+                                                            label: 'Delete',
+                                                            onClick: () =>
+                                                                router.delete(route('categories.destroy', category.id), {
+                                                                    onSuccess: () => toast.success('Category deleted successfully.'),
+                                                                }),
+                                                        },
+                                                        cancel: {
+                                                            label: 'Cancel',
+                                                            onClick: () => toast.dismiss(`delete-${category.id}`),
+                                                        },
+                                                    });
+                                                }}
+                                            >
+                                                Delete
+                                            </Button>
+                                        </TooltipWrapper>
+                                    </CardFooter>
+                                </Card>
+
+                                {/* Edit Dialog Content */}
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Edit Category</DialogTitle>
+                                        <p className="text-sm text-muted-foreground">Update the name of the category below.</p>
+                                    </DialogHeader>
+
+                                    <EditCategoryForm category={category} />
+                                </DialogContent>
+                            </Dialog>
                         ))}
                     </div>
                 )}
             </div>
         </AppLayout>
+    );
+}
+
+// 🔧 Edit Category Form Component
+function EditCategoryForm({ category }: { category: Category }) {
+    const { data, setData, put, processing, errors } = useForm({
+        name: category.name,
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        put(route('categories.update', category.id), {
+            onSuccess: () => toast.success('Category updated successfully.'),
+        });
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <Input value={data.name} onChange={(e) => setData('name', e.target.value)} placeholder="Category name" />
+            {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+
+            <DialogFooter>
+                <Button type="submit" disabled={processing}>
+                    Save Changes
+                </Button>
+            </DialogFooter>
+        </form>
     );
 }
