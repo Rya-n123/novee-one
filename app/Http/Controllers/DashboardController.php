@@ -12,7 +12,7 @@ class DashboardController extends Controller
     {
         $categories = Category::with('items')->get();
 
-        return Inertia::render('Dashboard', [
+        return Inertia::render('dashboard', [
             'categories' => $categories,
         ]);
     }
