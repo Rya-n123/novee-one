@@ -1,34 +1,43 @@
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import { Category, Item, type PageProps } from '@/types';
 import { Head } from '@inertiajs/react';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-    },
-];
+interface DashboardProps extends PageProps {
+    categories: (Category & { items: Item[] })[];
+}
 
-export default function Dashboard() {
+export default function Dashboard({ categories }: DashboardProps) {
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/dashboard' }]}>
             <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full" />
+
+            <div className="space-y-6 p-6">
+                <h1 className="text-2xl font-bold">Inventory Overview</h1>
+
+                {categories.length === 0 ? (
+                    <p className="text-muted-foreground">No categories found.</p>
+                ) : (
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {categories.map((category) => (
+                            <div key={category.id} className="rounded-lg border p-4 shadow-sm">
+                                <h2 className="text-lg font-semibold">{category.name}</h2>
+
+                                {category.items.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground">No items in this category.</p>
+                                ) : (
+                                    <ul className="mt-2 space-y-1 text-sm">
+                                        {category.items.map((item) => (
+                                            <li key={item.id} className="flex justify-between">
+                                                <span>{item.name}</span>
+                                                <p className="text-sm text-muted-foreground">₱{Number(item.price).toFixed(2)}</p>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        ))}
                     </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full" />
-                    </div>
-                </div>
-                <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                    <PlaceholderPattern className="absolute inset-0 size-full" />
-                </div>
+                )}
             </div>
         </AppLayout>
     );

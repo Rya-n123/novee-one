@@ -28,8 +28,15 @@ export interface SharedData {
     auth: Auth;
     ziggy: Config & { location: string };
     sidebarOpen: boolean;
+
+    flash?: {
+        success?: string;
+        error?: string;
+    };
+
     [key: string]: unknown;
 }
+
 
 export interface User {
     id: number;
@@ -41,6 +48,14 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Item {
+    id: number;
+    name: string;
+    price: number;
+    // Add more fields if needed, like quantity, description, etc.
+}
+
 
 export interface Category {
     id: number;

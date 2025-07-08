@@ -10,4 +10,10 @@ class Category extends Model
     use HasFactory;
 
     protected $fillable = ['name'];
+
+    // ✅ Relationship: One Category has many Items
+    public function items()
+    {
+        return $this->hasMany(Item::class)->orderBy('name');
+    }
 }

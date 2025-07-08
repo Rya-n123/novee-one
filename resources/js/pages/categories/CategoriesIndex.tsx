@@ -1,21 +1,34 @@
 import AppLayout from '@/layouts/app-layout';
 import { type Category, type PageProps } from '@/types';
-import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, router, usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { route } from 'ziggy-js';
 
 import CategoryCard from '@/components/categories/CategoryCard';
 import CreateCategoryDialog from '@/components/categories/CreateCategoryDialog';
 import EditCategoryDialog from '@/components/categories/EditCategoryDialog';
+import ViewCategoryDialog from '@/components/categories/ViewCategoryDialog';
 
 interface Props extends PageProps {
-    categories: Category[];
+    categories: (Category & { items?: any[] })[];
 }
 
 export default function CategoriesIndex({ categories }: Props) {
     const [editing, setEditing] = useState<Category | null>(null);
     const [viewing, setViewing] = useState<Category | null>(null);
+
+    // ✅ Use correctly typed usePage()
+    const { props } = usePage<PageProps>();
+
+    // ✅ Show flash success and error messages
+    useEffect(() => {
+        if (props.flash?.success) {
+            toast.success(props.flash.success);
+        } else if (props.flash?.error) {
+            toast.error(props.flash.error);
+        }
+    }, [props.flash]);
 
     const confirmDelete = (category: Category) => {
         toast.warning(`Delete "${category.name}"?`, {
@@ -46,11 +59,12 @@ export default function CategoriesIndex({ categories }: Props) {
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     {categories.map((category) => (
-                        <CategoryCard key={category.id} category={category} onEdit={setEditing} onDelete={confirmDelete} />
+                        <CategoryCard key={category.id} category={category} onEdit={setEditing} onDelete={confirmDelete} onView={setViewing} />
                     ))}
                 </div>
 
                 {editing && <EditCategoryDialog category={editing} onClose={() => setEditing(null)} />}
+                {viewing && <ViewCategoryDialog category={viewing} onClose={() => setViewing(null)} />}
             </div>
         </AppLayout>
     );
