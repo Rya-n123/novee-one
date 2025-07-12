@@ -8,12 +8,31 @@ use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    public function index()
-    {
-        $categories = Category::with('items')->get();
+    public function index(Request $request)
+{
+    $search = $request->input('search');
+    $categoryFilter = $request->input('category');
 
-        return Inertia::render('dashboard', [
-            'categories' => $categories,
-        ]);
+    $categoriesQuery = Category::with(['items' => function ($query) use ($search) {
+        if ($search) {
+            $query->where('name', 'like', '%' . $search . '%');
+        }
+    }]);
+
+    if ($categoryFilter) {
+        $categoriesQuery->where('id', $categoryFilter);
     }
+
+    $categories = $categoriesQuery->get();
+
+    return Inertia::render('dashboard', [
+        'categories' => $categories,
+        'filters' => [
+            'search' => $search,
+            'category' => $categoryFilter,
+        ],
+        'allCategories' => Category::all(['id', 'name']),
+    ]);
+}
+
 }
