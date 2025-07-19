@@ -2,11 +2,12 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { type Category } from '@/types';
+import { useCan } from '@/hooks/use-can'; // ✅ Import role checker
+import { Category } from '@/types';
 import { useForm } from '@inertiajs/react';
+import { AlertCircle, Edit, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import { route } from 'ziggy-js';
-import { Edit, Package, AlertCircle } from 'lucide-react';
 
 interface Props {
     category: Category;
@@ -16,7 +17,11 @@ interface Props {
 export default function EditCategoryDialog({ category, onClose }: Props) {
     const { data, setData, put, processing, errors, clearErrors } = useForm({ name: category.name });
 
-        const handleSubmit = (e: React.FormEvent) => {
+    const isAdmin = useCan('admin'); // ✅ Check role
+
+    if (!isAdmin) return null; // ✅ Don't allow non-admins to see or open the dialog
+
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!data.name.trim()) {
@@ -26,6 +31,8 @@ export default function EditCategoryDialog({ category, onClose }: Props) {
 
         put(route('categories.update', category.id), {
             onSuccess: () => {
+                toast.success('Category updated!');
+                onClose();
                 toast.success('✅ Category updated successfully!');
                 onClose();
             },
@@ -40,7 +47,7 @@ export default function EditCategoryDialog({ category, onClose }: Props) {
         onClose();
     };
 
-        return (
+    return (
         <Dialog open={true} onOpenChange={() => handleClose()}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
@@ -48,9 +55,7 @@ export default function EditCategoryDialog({ category, onClose }: Props) {
                         <Edit className="h-5 w-5" />
                         Edit Category
                     </DialogTitle>
-                    <DialogDescription>
-                        Update the name of this category. Changes will be reflected across your inventory.
-                    </DialogDescription>
+                    <DialogDescription>Update the name of this category. Changes will be reflected across your inventory.</DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">

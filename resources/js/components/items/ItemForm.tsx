@@ -1,15 +1,15 @@
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useForm } from '@inertiajs/react';
+import { AlertCircle, DollarSign, Package, Plus } from 'lucide-react';
 import { FormEvent } from 'react';
 import { toast } from 'sonner';
-import { Plus, DollarSign, Package, AlertCircle } from 'lucide-react';
 
 interface Props {
     categoryId: number;
-    onSuccess: (newItem: { id: number; name: string; price: number }) => void;
+    onSuccess: (newItem: { id: number; name: string; price: number; stock: number }) => void;
 }
 
 export default function ItemForm({ categoryId, onSuccess }: Props) {
@@ -19,7 +19,7 @@ export default function ItemForm({ categoryId, onSuccess }: Props) {
         category_id: categoryId,
     });
 
-        const handleSubmit = (e: FormEvent) => {
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
 
         if (!data.name.trim()) {
@@ -39,6 +39,7 @@ export default function ItemForm({ categoryId, onSuccess }: Props) {
                     id: Date.now(),
                     name: data.name,
                     price: parseFloat(data.price),
+                    stock: 0, // ✅ Added to fix type error
                 };
                 onSuccess(newItem);
                 toast.success('✅ Item added successfully!');
@@ -49,16 +50,14 @@ export default function ItemForm({ categoryId, onSuccess }: Props) {
         });
     };
 
-        return (
+    return (
         <Card className="mt-4">
             <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2 text-lg">
                     <Plus className="h-5 w-5" />
                     Add New Item
                 </CardTitle>
-                <CardDescription>
-                    Add a new item to this category with name and price information.
-                </CardDescription>
+                <CardDescription>Add a new item to this category with name and price information.</CardDescription>
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -106,11 +105,7 @@ export default function ItemForm({ categoryId, onSuccess }: Props) {
                     </div>
 
                     <div className="flex justify-end pt-2">
-                        <Button
-                            type="submit"
-                            disabled={processing || !data.name.trim() || !data.price}
-                            className="gap-2"
-                        >
+                        <Button type="submit" disabled={processing || !data.name.trim() || !data.price} className="gap-2">
                             {processing ? (
                                 <>
                                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

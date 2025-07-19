@@ -13,17 +13,24 @@ class CategoryController extends Controller
     {
         return Inertia::render('categories/CategoriesIndex', [
             'categories' => Category::with('items')->latest()->get(),
-
         ]);
     }
 
     public function create(): Response
     {
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized.');
+        }
+
         return Inertia::render('categories/CreateCategory');
     }
 
     public function store(Request $request)
     {
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized.');
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:categories,name'],
         ]);
@@ -35,6 +42,10 @@ class CategoryController extends Controller
 
     public function edit(Category $category): Response
     {
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized.');
+        }
+
         return Inertia::render('categories/EditCategory', [
             'category' => $category,
         ]);
@@ -42,6 +53,10 @@ class CategoryController extends Controller
 
     public function update(Request $request, Category $category)
     {
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized.');
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:categories,name,' . $category->id],
         ]);
@@ -52,8 +67,13 @@ class CategoryController extends Controller
     }
 
     public function destroy(Category $category)
-{
-    $category->delete();
-    return redirect()->route('categories.index');
-}
+    {
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized.');
+        }
+
+        $category->delete();
+
+        return redirect()->route('categories.index')->with('success', 'Category deleted successfully.');
+    }
 }

@@ -9,30 +9,33 @@ use Inertia\Inertia;
 class DashboardController extends Controller
 {
     public function index(Request $request)
-{
-    $search = $request->input('search');
-    $categoryFilter = $request->input('category');
+    {
+        $search = $request->input('search');
+        $categoryFilter = $request->input('category');
 
-    $categoriesQuery = Category::with(['items' => function ($query) use ($search) {
-        if ($search) {
-            $query->where('name', 'like', '%' . $search . '%');
+        if (empty($search) && empty($categoryFilter)) {
+            $categories = Category::with('items')->get();
+        } else {
+            $categoriesQuery = Category::with(['items' => function ($query) use ($search) {
+                if ($search) {
+                    $query->where('name', 'like', '%' . $search . '%');
+                }
+            }]);
+
+            if ($categoryFilter) {
+                $categoriesQuery->where('id', $categoryFilter);
+            }
+
+            $categories = $categoriesQuery->get();
         }
-    }]);
 
-    if ($categoryFilter) {
-        $categoriesQuery->where('id', $categoryFilter);
+        return Inertia::render('dashboard', [
+            'categories' => $categories,
+            'filters' => [
+                'search' => $search,
+                'category' => $categoryFilter,
+            ],
+            'allCategories' => Category::select('id', 'name')->get(),
+        ]);
     }
-
-    $categories = $categoriesQuery->get();
-
-    return Inertia::render('dashboard', [
-        'categories' => $categories,
-        'filters' => [
-            'search' => $search,
-            'category' => $categoryFilter,
-        ],
-        'allCategories' => Category::all(['id', 'name']),
-    ]);
-}
-
 }

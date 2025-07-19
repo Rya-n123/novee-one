@@ -1,14 +1,15 @@
 import ItemForm from '@/components/items/ItemForm';
 import ItemList from '@/components/items/ItemList';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useCan } from '@/hooks/use-can';
 import { Category, Item } from '@/types';
+import { DollarSign, Package, ShoppingCart, X } from 'lucide-react';
 import { useState } from 'react';
-import { Package, ShoppingCart, DollarSign, Plus, X } from 'lucide-react';
 
 interface Props {
     category: Category & { items?: Item[] };
@@ -19,6 +20,8 @@ export default function ViewCategoryDialog({ category, onClose }: Props) {
     const [open, setOpen] = useState(true);
     const [localItems, setLocalItems] = useState<Item[]>(category.items || []);
 
+    const isAdmin = useCan('admin'); // ✅ Role check
+
     const handleClose = () => {
         setOpen(false);
         onClose();
@@ -28,7 +31,7 @@ export default function ViewCategoryDialog({ category, onClose }: Props) {
         setLocalItems((prev) => [...prev, newItem]);
     };
 
-        const totalValue = localItems.reduce((sum, item) => sum + Number(item.price), 0);
+    const totalValue = localItems.reduce((sum, item) => sum + Number(item.price), 0);
     const avgPrice = localItems.length > 0 ? totalValue / localItems.length : 0;
 
     return (
@@ -87,7 +90,7 @@ export default function ViewCategoryDialog({ category, onClose }: Props) {
 
                             {/* Items Section */}
                             <div>
-                                <div className="flex items-center justify-between mb-4">
+                                <div className="mb-4 flex items-center justify-between">
                                     <h3 className="text-lg font-semibold">Items</h3>
                                     {localItems.length > 0 && (
                                         <Badge variant="secondary">

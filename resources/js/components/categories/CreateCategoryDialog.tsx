@@ -1,16 +1,17 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { type Category } from '@/types';
+import { useCan } from '@/hooks/use-can'; // ✅ Import role checker
+import { Category } from '@/types';
 import { useForm } from '@inertiajs/react';
+import { AlertCircle, Package, Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { route } from 'ziggy-js';
-import { Plus, Package, AlertCircle } from 'lucide-react';
 
 interface Props {
     categories: Category[];
@@ -21,7 +22,11 @@ export default function CreateCategoryDialog({ categories, children }: Props) {
     const [open, setOpen] = useState(false);
     const { data, setData, post, processing, reset, errors, clearErrors } = useForm({ name: '' });
 
-        const handleSubmit = (e: React.FormEvent) => {
+    const isAdmin = useCan('admin'); // ✅ Role check
+
+    if (!isAdmin) return null; // ✅ Hide entirely for non-admins
+
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!data.name.trim()) {
@@ -30,9 +35,7 @@ export default function CreateCategoryDialog({ categories, children }: Props) {
         }
 
         // Check for duplicate names
-        const isDuplicate = categories.some(cat =>
-            cat.name.toLowerCase() === data.name.trim().toLowerCase()
-        );
+        const isDuplicate = categories.some((cat) => cat.name.toLowerCase() === data.name.trim().toLowerCase());
 
         if (isDuplicate) {
             toast.error('A category with this name already exists');
@@ -42,6 +45,8 @@ export default function CreateCategoryDialog({ categories, children }: Props) {
         post(route('categories.store'), {
             preserveScroll: true,
             onSuccess: () => {
+                toast.success('Category added!');
+                reset();
                 toast.success('✅ Category created successfully!');
                 reset();
                 setOpen(false);
@@ -60,7 +65,7 @@ export default function CreateCategoryDialog({ categories, children }: Props) {
         }
     };
 
-        return (
+    return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
                 {children || (
@@ -77,9 +82,7 @@ export default function CreateCategoryDialog({ categories, children }: Props) {
                         <Package className="h-5 w-5" />
                         Create New Category
                     </DialogTitle>
-                    <DialogDescription>
-                        Add a new category to organize your inventory items. Category names must be unique.
-                    </DialogDescription>
+                    <DialogDescription>Add a new category to organize your inventory items. Category names must be unique.</DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -121,11 +124,17 @@ export default function CreateCategoryDialog({ categories, children }: Props) {
                     </DialogFooter>
                 </form>
 
+                <div className="mt-6">
+                    <h3 className="text-sm font-medium text-gray-700">Existing Categories:</h3>
+                    <ul className="mt-2 max-h-40 list-disc overflow-y-auto pl-5 text-sm text-gray-600">
+                        {categories.length === 0 ? <li>No categories yet</li> : categories.map((c) => <li key={c.id}>{c.name}</li>)}
+                    </ul>
+                </div>
                 {categories.length > 0 && (
                     <>
                         <Separator />
                         <div>
-                            <div className="flex items-center justify-between mb-3">
+                            <div className="mb-3 flex items-center justify-between">
                                 <h4 className="text-sm font-medium">Existing Categories</h4>
                                 <Badge variant="secondary">{categories.length}</Badge>
                             </div>
