@@ -13,30 +13,39 @@ class ItemSeeder extends Seeder
     {
         $faker = Faker::create();
 
-        // Seed fixed sample items
+        // ✅ Get categories with names indexed by ID
+        $categories = Category::all()->keyBy('id');
+
+        // ✅ Fixed items with known category IDs (make sure categories exist)
         $fixedItems = [
-            ['name' => 'Mountain Bike', 'price' => 8500, 'category_id' => 1],
-            ['name' => 'Cotton Fabric Roll', 'price' => 750, 'category_id' => 2],
-            ['name' => 'Basketball', 'price' => 450, 'category_id' => 3],
-            ['name' => 'Motorcycle Tire 17"', 'price' => 1200, 'category_id' => 4],
-            ['name' => 'Tricycle Shock Absorber', 'price' => 1800, 'category_id' => 5],
-            ['name' => 'Uratex Foam 2x75x36"', 'price' => 2300, 'category_id' => 6],
-            ['name' => 'Leather Upholstery Sheet', 'price' => 950, 'category_id' => 7],
-            ['name' => 'Hammer', 'price' => 120, 'category_id' => 8],
-            ['name' => 'Bike Bell', 'price' => 60, 'category_id' => 9],
+            ['name' => 'Mountain Bike', 'price' => 8500, 'category_name' => 'Bike'],
+            ['name' => 'Cotton Fabric Roll', 'price' => 750, 'category_name' => 'Fabric'],
+            ['name' => 'Basketball', 'price' => 450, 'category_name' => 'Sports'],
+            ['name' => 'Motorcycle Tire 17"', 'price' => 1200, 'category_name' => 'Tires'],
+            ['name' => 'Tricycle Shock Absorber', 'price' => 1800, 'category_name' => 'Parts'],
+            ['name' => 'Uratex Foam 2x75x36"', 'price' => 2300, 'category_name' => 'Foam'],
+            ['name' => 'Leather Upholstery Sheet', 'price' => 950, 'category_name' => 'Leather'],
+            ['name' => 'Hammer', 'price' => 120, 'category_name' => 'Tools'],
+            ['name' => 'Bike Bell', 'price' => 60, 'category_name' => 'Accessories'],
         ];
 
         foreach ($fixedItems as $item) {
-            Item::create($item);
+            $category = Category::firstWhere('name', $item['category_name']);
+            if ($category) {
+                Item::firstOrCreate(
+                    ['name' => $item['name']],
+                    ['price' => $item['price'], 'category_id' => $category->id]
+                );
+            }
         }
 
-        // Add 91 random items with realistic names
+        // ✅ Seed 91 random items with valid categories
         $categories = Category::all();
 
-        for ($i = 0; $i < 91; $i++) {
+        foreach (range(1, 91) as $i) {
             Item::create([
-                'name' => ucfirst($faker->words(rand(2, 4), true)), // e.g. "Portable air pump"
-                'price' => $faker->randomFloat(2, 50, 10000), // ₱50.00 - ₱10,000.00
+                'name' => ucfirst($faker->words(rand(2, 4), true)),
+                'price' => $faker->randomFloat(2, 50, 10000),
                 'category_id' => $categories->random()->id,
             ]);
         }

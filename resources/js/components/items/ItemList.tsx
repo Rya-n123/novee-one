@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { useCan } from '@/hooks/use-can'; // ✅ Import your hook
 import { Item } from '@/types';
 import { router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -12,18 +13,17 @@ interface Props {
 }
 
 export default function ItemList({ items, onUpdateLocalItems }: Props) {
-    const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+    const isAdmin = useCan('admin'); // ✅ Only admin can modify
 
+    const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
     const [stockDialogItem, setStockDialogItem] = useState<Item | null>(null);
     const [stockAction, setStockAction] = useState<'add' | 'decrease' | null>(null);
     const [stockQty, setStockQty] = useState<number>(1);
-
     const [editDialogItem, setEditDialogItem] = useState<Item | null>(null);
     const [editName, setEditName] = useState<string>('');
     const [editPrice, setEditPrice] = useState<number>(0);
 
     const handleDelete = (itemId: number) => setPendingDeleteId(itemId);
-
     const handleUndo = () => setPendingDeleteId(null);
 
     const confirmDelete = (itemId: number) => {
@@ -116,35 +116,40 @@ export default function ItemList({ items, onUpdateLocalItems }: Props) {
                         {pendingDeleteId === item.id ? (
                             <div className="flex flex-col items-start gap-2">
                                 <p className="text-sm text-muted-foreground italic">Item "{item.name}" marked for deletion.</p>
-                                <div className="flex gap-2">
-                                    <Button size="sm" variant="outline" onClick={handleUndo}>
-                                        Undo
-                                    </Button>
-                                    <Button size="sm" variant="destructive" onClick={() => confirmDelete(item.id)}>
-                                        Confirm Delete
-                                    </Button>
-                                </div>
+                                {isAdmin && (
+                                    <div className="flex gap-2">
+                                        <Button size="sm" variant="outline" onClick={handleUndo}>
+                                            Undo
+                                        </Button>
+                                        <Button size="sm" variant="destructive" onClick={() => confirmDelete(item.id)}>
+                                            Confirm Delete
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <>
                                 <p className="font-medium">{item.name}</p>
                                 <p className="text-sm text-muted-foreground">
-                                    ₱{item.price} • Stock: {item.stock}
+                                    ₱{Number(item.price).toLocaleString('en-US', { minimumFractionDigits: 2 })} • Stock: {item.stock}
                                 </p>
-                                <div className="mt-1 flex flex-wrap gap-2">
-                                    <Button size="sm" variant="outline" onClick={() => openEditDialog(item)}>
-                                        Edit
-                                    </Button>
-                                    <Button size="sm" variant="default" onClick={() => openStockDialog(item, 'add')}>
-                                        Add Stock
-                                    </Button>
-                                    <Button size="sm" variant="default" onClick={() => openStockDialog(item, 'decrease')}>
-                                        Decrease Stock
-                                    </Button>
-                                    <Button size="sm" variant="destructive" onClick={() => handleDelete(item.id)}>
-                                        Delete
-                                    </Button>
-                                </div>
+
+                                {isAdmin && (
+                                    <div className="mt-1 flex flex-wrap gap-2">
+                                        <Button size="sm" variant="outline" onClick={() => openEditDialog(item)}>
+                                            Edit
+                                        </Button>
+                                        <Button size="sm" variant="default" onClick={() => openStockDialog(item, 'add')}>
+                                            Add Stock
+                                        </Button>
+                                        <Button size="sm" variant="default" onClick={() => openStockDialog(item, 'decrease')}>
+                                            Decrease Stock
+                                        </Button>
+                                        <Button size="sm" variant="destructive" onClick={() => handleDelete(item.id)}>
+                                            Delete
+                                        </Button>
+                                    </div>
+                                )}
                             </>
                         )}
                     </div>
@@ -199,7 +204,16 @@ export default function ItemList({ items, onUpdateLocalItems }: Props) {
                         className="space-y-2"
                     >
                         <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Item name" />
-                        <Input type="number" min="0" value={editPrice} onChange={(e) => setEditPrice(Number(e.target.value))} placeholder="Price" />
+                        <Input
+                            type="number"
+                            value={editPrice}
+                            onChange={(e) => {
+                                if (e.target.value.length > 7) return;
+                                setEditPrice(Number(e.target.value));
+                            }}
+                            placeholder="Price"
+                            min="0"
+                        />
                         <div className="flex justify-end gap-2">
                             <Button type="button" variant="ghost" onClick={() => setEditDialogItem(null)}>
                                 Cancel

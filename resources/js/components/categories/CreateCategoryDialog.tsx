@@ -1,8 +1,8 @@
-// components/categories/CreateCategoryDialog.tsx
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { type Category } from '@/types';
+import { useCan } from '@/hooks/use-can'; // ✅ Import role checker
+import { Category } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -16,6 +16,10 @@ export default function CreateCategoryDialog({ categories }: Props) {
     const [open, setOpen] = useState(false);
     const { data, setData, post, processing, reset, errors } = useForm({ name: '' });
 
+    const isAdmin = useCan('admin'); // ✅ Role check
+
+    if (!isAdmin) return null; // ✅ Hide entirely for non-admins
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -23,7 +27,7 @@ export default function CreateCategoryDialog({ categories }: Props) {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Category added!');
-                reset(); // clear input
+                reset();
             },
         });
     };
@@ -51,7 +55,6 @@ export default function CreateCategoryDialog({ categories }: Props) {
                     </DialogFooter>
                 </form>
 
-                {/* Existing Categories Preview */}
                 <div className="mt-6">
                     <h3 className="text-sm font-medium text-gray-700">Existing Categories:</h3>
                     <ul className="mt-2 max-h-40 list-disc overflow-y-auto pl-5 text-sm text-gray-600">

@@ -38,6 +38,14 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const { auth } = page.props;
     const getInitials = useInitials();
 
+    // ✅ Filter nav items based on role
+    const filteredNavItems = mainNavItems.filter((item) => {
+        if (item.title === 'Categories' && auth.user.role !== 'admin') {
+            return false;
+        }
+        return true;
+    });
+
     return (
         <>
             <div className="border-b border-sidebar-border/80">
@@ -58,7 +66,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                     </Link>
                                 </SheetHeader>
                                 <div className="flex flex-1 flex-col space-y-4 p-4">
-                                    {mainNavItems.map((item) => (
+                                    {filteredNavItems.map((item) => (
                                         <Link key={item.title} href={item.href} className="flex items-center space-x-2 font-medium">
                                             {item.icon && <Icon iconNode={item.icon} className="h-5 w-5" />}
                                             <span>{item.title}</span>
@@ -78,7 +86,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                     <div className="ml-6 hidden h-full items-center space-x-6 lg:flex">
                         <NavigationMenu className="flex h-full items-stretch">
                             <NavigationMenuList className="flex h-full items-stretch space-x-2">
-                                {mainNavItems.map((item, index) => (
+                                {filteredNavItems.map((item, index) => (
                                     <NavigationMenuItem key={index} className="relative flex h-full items-center">
                                         <Link
                                             href={item.href}

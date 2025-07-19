@@ -1,8 +1,8 @@
-// components/categories/EditCategoryDialog.tsx
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { type Category } from '@/types';
+import { useCan } from '@/hooks/use-can'; // ✅ Import role checker
+import { Category } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { route } from 'ziggy-js';
@@ -15,12 +15,16 @@ interface Props {
 export default function EditCategoryDialog({ category, onClose }: Props) {
     const { data, setData, put, processing, errors } = useForm({ name: category.name });
 
+    const isAdmin = useCan('admin'); // ✅ Check role
+
+    if (!isAdmin) return null; // ✅ Don't allow non-admins to see or open the dialog
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         put(route('categories.update', category.id), {
             onSuccess: () => {
                 toast.success('Category updated!');
-                onClose(); // close dialog
+                onClose();
             },
         });
     };

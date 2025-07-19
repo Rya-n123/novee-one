@@ -1,15 +1,18 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useCan } from '@/hooks/use-can';
 import { useForm } from '@inertiajs/react';
 import { FormEvent } from 'react';
 import { toast } from 'sonner';
 
 interface Props {
     categoryId: number;
-    onSuccess: (newItem: { id: number; name: string; price: number }) => void;
+    onSuccess: (newItem: { id: number; name: string; price: number; stock: number }) => void;
 }
 
 export default function ItemForm({ categoryId, onSuccess }: Props) {
+    const isAdmin = useCan('admin');
+
     const { data, setData, post, processing, reset, errors } = useForm({
         name: '',
         price: '',
@@ -19,6 +22,11 @@ export default function ItemForm({ categoryId, onSuccess }: Props) {
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
 
+        if (!isAdmin) {
+            toast.error('❌ You are not allowed to add items.');
+            return;
+        }
+
         post(route('items.store'), {
             preserveScroll: true,
             onSuccess: () => {
@@ -26,6 +34,7 @@ export default function ItemForm({ categoryId, onSuccess }: Props) {
                     id: Date.now(),
                     name: data.name,
                     price: parseFloat(data.price),
+                    stock: 0, // ✅ Added to fix type error
                 };
                 onSuccess(newItem);
                 toast.success('✅ Item added successfully!');
@@ -34,6 +43,8 @@ export default function ItemForm({ categoryId, onSuccess }: Props) {
             onError: () => toast.error('❌ Failed to add item'),
         });
     };
+
+    if (!isAdmin) return null;
 
     return (
         <form onSubmit={handleSubmit} className="mt-4 space-y-3">

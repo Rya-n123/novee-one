@@ -3,6 +3,7 @@ import ItemList from '@/components/items/ItemList';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useCan } from '@/hooks/use-can';
 import { Category, Item } from '@/types';
 import { useState } from 'react';
 
@@ -14,6 +15,8 @@ interface Props {
 export default function ViewCategoryDialog({ category, onClose }: Props) {
     const [open, setOpen] = useState(true);
     const [localItems, setLocalItems] = useState<Item[]>(category.items || []);
+
+    const isAdmin = useCan('admin'); // ✅ Role check
 
     const handleClose = () => {
         setOpen(false);
@@ -34,7 +37,6 @@ export default function ViewCategoryDialog({ category, onClose }: Props) {
                 </DialogHeader>
 
                 {/* 🧾 Item List Section */}
-                {/* 🧾 Item List Section */}
                 <section className="mb-6">
                     <div className="mb-2 flex items-center justify-between">
                         <h2 className="text-md font-medium">Existing Items</h2>
@@ -48,13 +50,15 @@ export default function ViewCategoryDialog({ category, onClose }: Props) {
                     </ScrollArea>
                 </section>
 
-                {/* ➕ Add Item Form */}
-                <section className="mt-6">
-                    <h2 className="text-md mb-2 font-medium">Add New Item</h2>
-                    <div className="rounded-md border p-4">
-                        <ItemForm categoryId={category.id} onSuccess={handleNewItem} />
-                    </div>
-                </section>
+                {/* ➕ Add Item Form (Admin Only) */}
+                {isAdmin && (
+                    <section className="mt-6">
+                        <h2 className="text-md mb-2 font-medium">Add New Item</h2>
+                        <div className="rounded-md border p-4">
+                            <ItemForm categoryId={category.id} onSuccess={handleNewItem} />
+                        </div>
+                    </section>
+                )}
 
                 <div className="mt-6 text-right">
                     <Button type="button" variant="secondary" onClick={handleClose}>
