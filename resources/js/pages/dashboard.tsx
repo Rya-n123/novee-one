@@ -87,9 +87,7 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
                                     <ul className="mt-2 space-y-1 text-sm">
                                         {category.items.map((item) => (
                                             <li key={item.id} className="flex justify-between">
-                                                <span>
-                                                    {item.name} <span className="ml-2 text-xs text-muted-foreground">Stock: {item.stock}</span>
-                                                </span>
+                                                <span>{item.name}</span>
                                                 <p className="text-sm text-muted-foreground">₱{Number(item.price).toFixed(2)}</p>
                                             </li>
                                         ))}
