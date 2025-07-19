@@ -11,8 +11,8 @@ import EditCategoryDialog from '@/components/categories/EditCategoryDialog';
 import ViewCategoryDialog from '@/components/categories/ViewCategoryDialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { SearchInput } from '@/components/search-input';
 import { Plus, Package, Grid3X3, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 
 interface Props extends PageProps {
     categories: (Category & { items?: any[] })[];
@@ -99,16 +99,13 @@ export default function CategoriesIndex({ categories }: Props) {
                         <CardHeader className="pb-2">
                             <CardTitle className="text-sm font-medium">Search Categories</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search categories..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10"
-                                />
-                            </div>
+                                                <CardContent>
+                            <SearchInput
+                                value={searchTerm}
+                                onChange={setSearchTerm}
+                                placeholder="Search categories..."
+                                onClear={() => setSearchTerm('')}
+                            />
                         </CardContent>
                     </Card>
                 </div>
