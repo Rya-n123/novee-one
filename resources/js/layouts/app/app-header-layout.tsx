@@ -1,18 +1,32 @@
 import { AppContent } from '@/components/app-content';
 import { AppHeader } from '@/components/app-header';
 import { AppShell } from '@/components/app-shell';
+import { ErrorBoundary } from '@/components/error-boundary';
 import { type BreadcrumbItem } from '@/types';
 import type { PropsWithChildren } from 'react';
-import { Toaster } from 'sonner'; // ✅ Import Sonner Toaster
+import { Toaster } from 'sonner';
 
 export default function AppHeaderLayout({ children, breadcrumbs }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
     return (
-        <AppShell>
-            <AppHeader breadcrumbs={breadcrumbs} />
-            <AppContent>{children}</AppContent>
+        <ErrorBoundary>
+            <AppShell>
+                <AppHeader breadcrumbs={breadcrumbs} />
+                <AppContent>
+                    <ErrorBoundary>
+                        {children}
+                    </ErrorBoundary>
+                </AppContent>
 
-            {/* ✅ Add Sonner Toaster (position can be changed as needed) */}
-            <Toaster position="top-center" richColors />
-        </AppShell>
+                <Toaster
+                    position="top-center"
+                    richColors
+                    closeButton
+                    duration={4000}
+                    toastOptions={{
+                        className: 'text-sm',
+                    }}
+                />
+            </AppShell>
+        </ErrorBoundary>
     );
 }
