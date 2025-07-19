@@ -1,15 +1,15 @@
-import useDebounce from '@/hooks/useDebounce';
-import AppLayout from '@/layouts/app-layout';
-import { Category, Item, PageProps } from '@/types';
-import { Head, useForm, Link } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { SearchInput } from '@/components/search-input';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { SearchInput } from '@/components/search-input';
-import { Plus, Package, TrendingUp, DollarSign, BarChart3, Eye, Filter } from 'lucide-react';
+import useDebounce from '@/hooks/useDebounce';
+import AppLayout from '@/layouts/app-layout';
+import { Category, Item, PageProps } from '@/types';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { BarChart3, DollarSign, Eye, Filter, Package, Plus, Search, TrendingUp } from 'lucide-react';
+import { useEffect } from 'react';
 interface DashboardProps extends PageProps {
     categories: (Category & { items: Item[] })[];
     filters: {
@@ -52,12 +52,10 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
         // });
     };
 
-        // Calculate stats
+    // Calculate stats
     const totalCategories = categories.length;
     const totalItems = categories.reduce((sum, cat) => sum + cat.items.length, 0);
-    const totalValue = categories.reduce((sum, cat) =>
-        sum + cat.items.reduce((itemSum, item) => itemSum + Number(item.price), 0), 0
-    );
+    const totalValue = categories.reduce((sum, cat) => sum + cat.items.reduce((itemSum, item) => itemSum + Number(item.price), 0), 0);
     const avgItemsPerCategory = totalCategories > 0 ? Math.round(totalItems / totalCategories) : 0;
 
     return (
@@ -90,9 +88,7 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{totalCategories}</div>
-                            <p className="text-xs text-muted-foreground">
-                                Organized collections
-                            </p>
+                            <p className="text-xs text-muted-foreground">Organized collections</p>
                         </CardContent>
                     </Card>
                     <Card>
@@ -102,9 +98,7 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{totalItems}</div>
-                            <p className="text-xs text-muted-foreground">
-                                Items in inventory
-                            </p>
+                            <p className="text-xs text-muted-foreground">Items in inventory</p>
                         </CardContent>
                     </Card>
                     <Card>
@@ -114,9 +108,7 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">₱{totalValue.toFixed(2)}</div>
-                            <p className="text-xs text-muted-foreground">
-                                Combined inventory value
-                            </p>
+                            <p className="text-xs text-muted-foreground">Combined inventory value</p>
                         </CardContent>
                     </Card>
                     <Card>
@@ -126,9 +118,7 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{avgItemsPerCategory}</div>
-                            <p className="text-xs text-muted-foreground">
-                                Average per category
-                            </p>
+                            <p className="text-xs text-muted-foreground">Average per category</p>
                         </CardContent>
                     </Card>
                 </div>
@@ -140,12 +130,10 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
                             <Search className="h-5 w-5" />
                             Search & Filter
                         </CardTitle>
-                        <CardDescription>
-                            Find items across all categories
-                        </CardDescription>
+                        <CardDescription>Find items across all categories</CardDescription>
                     </CardHeader>
                     <CardContent>
-                                                <div className="flex flex-col gap-4 sm:flex-row">
+                        <div className="flex flex-col gap-4 sm:flex-row">
                             <SearchInput
                                 value={data.search}
                                 onChange={(value) => setData('search', value)}
@@ -153,7 +141,7 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
                                 className="flex-1"
                             />
                             <Select value={data.category} onValueChange={(value) => setData('category', value)}>
-                                <SelectTrigger className="w-full sm:w-[200px] gap-2">
+                                <SelectTrigger className="w-full gap-2 sm:w-[200px]">
                                     <Filter className="h-4 w-4" />
                                     <SelectValue placeholder="All Categories" />
                                 </SelectTrigger>
@@ -172,7 +160,7 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
 
                 {/* Categories Overview */}
                 <div>
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="mb-6 flex items-center justify-between">
                         <div>
                             <h2 className="text-2xl font-semibold tracking-tight">Categories Overview</h2>
                             <p className="text-muted-foreground">Browse your inventory by category</p>
@@ -188,10 +176,12 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
                     {categories.length === 0 ? (
                         <Card>
                             <CardContent className="flex flex-col items-center justify-center py-12">
-                                <Package className="h-12 w-12 text-muted-foreground mb-4" />
-                                <h3 className="text-lg font-semibold mb-2">No categories found</h3>
-                                <p className="text-muted-foreground text-center mb-4">
-                                    {data.search || data.category ? 'No categories match your search criteria.' : 'Get started by creating your first category.'}
+                                <Package className="mb-4 h-12 w-12 text-muted-foreground" />
+                                <h3 className="mb-2 text-lg font-semibold">No categories found</h3>
+                                <p className="mb-4 text-center text-muted-foreground">
+                                    {data.search || data.category
+                                        ? 'No categories match your search criteria.'
+                                        : 'Get started by creating your first category.'}
                                 </p>
                                 {!data.search && !data.category && (
                                     <Link href="/categories">
@@ -218,25 +208,29 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
                                     <CardContent>
                                         {category.items.length === 0 ? (
                                             <div className="flex flex-col items-center py-6 text-center">
-                                                <Package className="h-8 w-8 text-muted-foreground mb-2" />
+                                                <Package className="mb-2 h-8 w-8 text-muted-foreground" />
                                                 <p className="text-sm text-muted-foreground">No items in this category</p>
                                             </div>
                                         ) : (
                                             <div className="space-y-3">
                                                 <div className="flex items-center justify-between text-sm text-muted-foreground">
                                                     <span>Total Value:</span>
-                                                    <span className="font-medium">₱{category.items.reduce((sum, item) => sum + Number(item.price), 0).toFixed(2)}</span>
+                                                    <span className="font-medium">
+                                                        ₱{category.items.reduce((sum, item) => sum + Number(item.price), 0).toFixed(2)}
+                                                    </span>
                                                 </div>
                                                 <Separator />
-                                                <div className="space-y-2 max-h-32 overflow-y-auto">
+                                                <div className="max-h-32 space-y-2 overflow-y-auto">
                                                     {category.items.slice(0, 4).map((item) => (
-                                                        <div key={item.id} className="flex justify-between items-center text-sm">
-                                                            <span className="truncate flex-1 mr-2">{item.name}</span>
-                                                            <span className="font-medium text-muted-foreground">₱{Number(item.price).toFixed(2)}</span>
+                                                        <div key={item.id} className="flex items-center justify-between text-sm">
+                                                            <span className="mr-2 flex-1 truncate">{item.name}</span>
+                                                            <span className="font-medium text-muted-foreground">
+                                                                ₱{Number(item.price).toFixed(2)}
+                                                            </span>
                                                         </div>
                                                     ))}
                                                     {category.items.length > 4 && (
-                                                        <p className="text-xs text-muted-foreground text-center pt-1">
+                                                        <p className="pt-1 text-center text-xs text-muted-foreground">
                                                             +{category.items.length - 4} more items
                                                         </p>
                                                     )}
