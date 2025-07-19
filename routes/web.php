@@ -6,6 +6,12 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\DashboardController;
 
+
+
+Route::get('/builder-page', function () {
+    return Inertia::render('builder-page');
+});
+
 Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
