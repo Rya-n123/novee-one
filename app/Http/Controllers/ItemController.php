@@ -44,5 +44,34 @@ public function destroy(Item $item)
     return back()->with('success', 'Item deleted!');
 }
 
+// Increase stock
+public function addStock(Request $request, Item $item)
+{
+    $validated = $request->validate([
+        'quantity' => 'required|integer|min:1',
+    ]);
+
+    $item->increment('stock', $validated['quantity']);
+
+    return back()->with('success', 'Stock increased successfully.');
+}
+
+// Decrease stock
+public function decreaseStock(Request $request, Item $item)
+{
+    $validated = $request->validate([
+        'quantity' => 'required|integer|min:1',
+    ]);
+
+    if ($item->stock < $validated['quantity']) {
+        return back()->withErrors(['quantity' => 'Not enough stock to decrease.']);
+    }
+
+    $item->decrement('stock', $validated['quantity']);
+
+    return back()->with('success', 'Stock decreased successfully.');
+}
+
+
 
 }

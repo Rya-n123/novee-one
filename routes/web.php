@@ -8,9 +8,6 @@ use App\Http\Controllers\DashboardController;
 
 
 
-Route::get('/builder-page', function () {
-    return Inertia::render('builder-page');
-});
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -33,6 +30,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/items', [ItemController::class, 'store'])->name('items.store');                    // create
     Route::post('/items/{item}/update', [ItemController::class, 'update'])->name('items.update');    // update
     Route::post('/items/{item}/delete', [ItemController::class, 'destroy'])->name('items.destroy');  // delete
+    Route::post('/items/{item}/add-stock', [ItemController::class, 'addStock'])->name('items.add-stock');
+    Route::post('/items/{item}/decrease-stock', [ItemController::class, 'decreaseStock'])->name('items.decrease-stock');
+
 });
 
 require __DIR__.'/settings.php';

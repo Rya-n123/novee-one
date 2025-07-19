@@ -50,6 +50,7 @@ export interface User {
 }
 
 export interface Item {
+    stock: number;
     id: number;
     name: string;
     price: number;
