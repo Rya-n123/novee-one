@@ -1,11 +1,12 @@
-// components/categories/EditCategoryDialog.tsx
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { type Category } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { route } from 'ziggy-js';
+import { Edit, Package, AlertCircle } from 'lucide-react';
 
 interface Props {
     category: Category;
@@ -13,30 +14,83 @@ interface Props {
 }
 
 export default function EditCategoryDialog({ category, onClose }: Props) {
-    const { data, setData, put, processing, errors } = useForm({ name: category.name });
+    const { data, setData, put, processing, errors, clearErrors } = useForm({ name: category.name });
 
-    const handleSubmit = (e: React.FormEvent) => {
+        const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!data.name.trim()) {
+            toast.error('Please enter a category name');
+            return;
+        }
+
         put(route('categories.update', category.id), {
             onSuccess: () => {
-                toast.success('Category updated!');
-                onClose(); // close dialog
+                toast.success('✅ Category updated successfully!');
+                onClose();
+            },
+            onError: () => {
+                toast.error('❌ Failed to update category');
             },
         });
     };
 
-    return (
-        <Dialog open={true} onOpenChange={onClose}>
-            <DialogContent>
+    const handleClose = () => {
+        clearErrors();
+        onClose();
+    };
+
+        return (
+        <Dialog open={true} onOpenChange={() => handleClose()}>
+            <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Edit Category</DialogTitle>
+                    <DialogTitle className="flex items-center gap-2">
+                        <Edit className="h-5 w-5" />
+                        Edit Category
+                    </DialogTitle>
+                    <DialogDescription>
+                        Update the name of this category. Changes will be reflected across your inventory.
+                    </DialogDescription>
                 </DialogHeader>
+
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <Input value={data.name} onChange={(e) => setData('name', e.target.value)} placeholder="Category name" />
-                    {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
-                    <DialogFooter>
-                        <Button type="submit" disabled={processing}>
-                            Save Changes
+                    <div className="space-y-2">
+                        <Label htmlFor="category-name" className="flex items-center gap-1">
+                            <Package className="h-4 w-4" />
+                            Category Name
+                        </Label>
+                        <Input
+                            id="category-name"
+                            value={data.name}
+                            onChange={(e) => setData('name', e.target.value)}
+                            placeholder="Enter category name..."
+                            className={errors.name ? 'border-red-500 focus:border-red-500' : ''}
+                            autoFocus
+                        />
+                        {errors.name && (
+                            <p className="flex items-center gap-1 text-sm text-red-500">
+                                <AlertCircle className="h-3 w-3" />
+                                {errors.name}
+                            </p>
+                        )}
+                    </div>
+
+                    <DialogFooter className="gap-2">
+                        <Button type="button" variant="outline" onClick={handleClose}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" disabled={processing || !data.name.trim()} className="gap-2">
+                            {processing ? (
+                                <>
+                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                    Updating...
+                                </>
+                            ) : (
+                                <>
+                                    <Edit className="h-4 w-4" />
+                                    Update Category
+                                </>
+                            )}
                         </Button>
                     </DialogFooter>
                 </form>
