@@ -5,11 +5,11 @@ import { Head, useForm, Link } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Search, Plus, Package, TrendingUp, DollarSign, BarChart3, Eye } from 'lucide-react';
+import { SearchInput } from '@/components/search-input';
+import { Plus, Package, TrendingUp, DollarSign, BarChart3, Eye, Filter } from 'lucide-react';
 interface DashboardProps extends PageProps {
     categories: (Category & { items: Item[] })[];
     filters: {
@@ -145,18 +145,16 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex flex-col gap-4 sm:flex-row">
-                            <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search items..."
-                                    value={data.search}
-                                    onChange={(e) => setData('search', e.target.value)}
-                                    className="pl-10"
-                                />
-                            </div>
+                                                <div className="flex flex-col gap-4 sm:flex-row">
+                            <SearchInput
+                                value={data.search}
+                                onChange={(value) => setData('search', value)}
+                                placeholder="Search items across all categories..."
+                                className="flex-1"
+                            />
                             <Select value={data.category} onValueChange={(value) => setData('category', value)}>
-                                <SelectTrigger className="w-full sm:w-[200px]">
+                                <SelectTrigger className="w-full sm:w-[200px] gap-2">
+                                    <Filter className="h-4 w-4" />
                                     <SelectValue placeholder="All Categories" />
                                 </SelectTrigger>
                                 <SelectContent>
