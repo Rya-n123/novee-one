@@ -21,9 +21,18 @@ Route::middleware(['auth', 'verified', RoleMiddleware::class . ':admin,employee'
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
 
+<<<<<<< HEAD
 Route::middleware(['auth', 'verified', RoleMiddleware::class . ':admin'])->group(function () {
     Route::resource('categories', CategoryController::class);
 
+=======
+// ✅ Admin-Only Routes (Full Access)
+Route::middleware(['auth', 'verified', RoleMiddleware::class . ':admin'])->group(function () {
+    // 🗂️ Category CRUD
+    Route::resource('categories', CategoryController::class);
+
+    // 📦 Items POST-only actions
+>>>>>>> 8178966bde3652f0305cff36ae5ff46aeb67e88a
     Route::post('/items', [ItemController::class, 'store'])->name('items.store');
     Route::post('/items/{item}/update', [ItemController::class, 'update'])->name('items.update');
     Route::post('/items/{item}/delete', [ItemController::class, 'destroy'])->name('items.destroy');

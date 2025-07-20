@@ -19,7 +19,7 @@ class DashboardController extends Controller
         }
     }]);
 
-    if ($categoryFilter) {
+    if ($categoryFilter && $categoryFilter !== 'all') {
         $categoriesQuery->where('id', $categoryFilter);
     }
 
@@ -34,5 +34,6 @@ class DashboardController extends Controller
         'allCategories' => Category::all(['id', 'name']),
     ]);
 }
+
 
 }
