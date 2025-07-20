@@ -10,28 +10,35 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
 {
-    $search = $request->input('search');
-    $categoryFilter = $request->input('category');
+    $search = $request->input('search', '');
+    $categoryFilter = $request->input('category', 'all');
 
-    $categoriesQuery = Category::with(['items' => function ($query) use ($search) {
-        if ($search) {
-            $query->where('name', 'like', '%' . $search . '%');
-        }
-    }]);
+    $categoriesQuery = Category::query();
 
-    if ($categoryFilter && $categoryFilter !== 'all') {
-        $categoriesQuery->where('id', $categoryFilter);
+    if ($categoryFilter !== 'all') {
+        $categoriesQuery->where('id', (int) $categoryFilter);
     }
 
     $categories = $categoriesQuery->get();
 
+    // Manually attach items based on search — this guarantees it works right!
+    $categories->each(function ($category) use ($search) {
+        $category->setRelation('items', $category->items()->when(
+            $search !== '',
+            fn ($query) => $query->where('name', 'like', '%' . $search . '%')
+        )->get());
+    });
+
+
+    \Log::info('Sending Categories:', $categories->toArray());
+
     return Inertia::render('dashboard', [
-        'categories' => $categories,
+        'categories' => $categories->filter(fn ($cat) => $cat->items->isNotEmpty())->values(),
         'filters' => [
             'search' => $search,
             'category' => $categoryFilter,
         ],
-        'allCategories' => Category::all(['id', 'name']),
+        'allCategories' => Category::orderBy('name')->get(['id', 'name']),
     ]);
 }
 

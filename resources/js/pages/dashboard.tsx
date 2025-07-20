@@ -2,11 +2,12 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useCan } from '@/hooks/use-can';
 import useDebounce from '@/hooks/useDebounce';
 import AppLayout from '@/layouts/app-layout';
 import { Category, Item, PageProps } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 interface DashboardProps extends PageProps {
     categories: (Category & { items: Item[] })[];
@@ -22,6 +23,8 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
         search: filters.search || '',
         category: filters.category || 'all',
     });
+
+    const canView = useCan('admin');
 
     useEffect(() => {
         get(route('dashboard'), {
@@ -49,9 +52,25 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
         return <Badge variant="default">Stock: {stock}</Badge>;
     };
 
-    const totalCategories = categories.length;
-    const totalItems = categories.reduce((total, cat) => total + cat.items.length, 0);
-    const totalInventoryValue = categories.reduce((total, cat) => total + cat.items.reduce((sum, item) => sum + item.price * item.stock, 0), 0);
+    // ✅ Properly filter categories and items
+    const filteredCategories = useMemo(() => {
+        return categories
+            .map((cat) => ({
+                ...cat,
+                items: cat.items.filter((item) => item.name.toLowerCase().includes(data.search.toLowerCase())),
+            }))
+            .filter((cat) => (data.category === 'all' || String(cat.id) === data.category) && cat.items.length > 0);
+    }, [categories, data.search, data.category]);
+
+    const totalCategories = filteredCategories.length;
+
+    const totalItems = useMemo(() => {
+        return filteredCategories.reduce((total, cat) => total + cat.items.length, 0);
+    }, [filteredCategories]);
+
+    const totalInventoryValue = useMemo(() => {
+        return filteredCategories.reduce((total, cat) => total + cat.items.reduce((sum, item) => sum + item.price * item.stock, 0), 0);
+    }, [filteredCategories]);
 
     return (
         <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/dashboard' }]}>
@@ -60,7 +79,6 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
             <div className="space-y-6 p-6">
                 <h1 className="text-2xl font-bold">Inventory Dashboard</h1>
 
-                {/* 📊 Summary Cards */}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <Card className="transition hover:shadow-md">
                         <CardHeader>
@@ -80,59 +98,21 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
                         </CardContent>
                     </Card>
 
-                    <Card className="transition hover:shadow-md">
-                        <CardHeader>
-                            <CardTitle>Total Inventory Value</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-2xl font-bold text-primary">
-                                ₱{totalInventoryValue.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-                            </p>
-                        </CardContent>
-                    </Card>
+                    {canView && (
+                        <Card className="transition hover:shadow-md">
+                            <CardHeader>
+                                <CardTitle>Total Inventory Value</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-2xl font-bold text-primary">
+                                    ₱{totalInventoryValue.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
-                {/* 🧠 AI-Powered Predictions */}
-                <Card className="transition hover:shadow-md">
-                    <CardHeader>
-                        <CardTitle>AI-Powered Inventory Insights</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {(() => {
-                            const lowStockItems = categories.flatMap((cat) => cat.items.filter((item) => item.stock <= 5));
 
-                            const totalAtRiskValue = lowStockItems.reduce((sum, item) => sum + item.price * item.stock, 0);
-
-                            return (
-                                <div className="space-y-2">
-                                    {lowStockItems.length === 0 ? (
-                                        <p className="text-sm text-muted-foreground">All stocks are in healthy levels.</p>
-                                    ) : (
-                                        <>
-                                            <p className="text-sm font-medium text-yellow-600">
-                                                ⚠️ {lowStockItems.length} item(s) are running low on stock.
-                                            </p>
-                                            <ul className="list-disc pl-5 text-xs">
-                                                {lowStockItems.slice(0, 5).map((item) => (
-                                                    <li key={item.id}>
-                                                        <span className="font-semibold">{item.name}</span> — {item.stock} left. Recommend reorder:{' '}
-                                                        <span className="text-primary">20 pcs</span>.
-                                                    </li>
-                                                ))}
-                                                {lowStockItems.length > 5 && <li>...and {lowStockItems.length - 5} more low-stock items.</li>}
-                                            </ul>
-                                            <p className="text-xs font-semibold text-red-600">
-                                                Total at risk value: ₱{totalAtRiskValue.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-                                            </p>
-                                        </>
-                                    )}
-                                </div>
-                            );
-                        })()}
-                    </CardContent>
-                </Card>
-
-                {/* 🔍 Search & Filter */}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-col gap-2 md:flex-row">
                     <Input
                         type="text"
                         placeholder="Search items..."
@@ -156,12 +136,11 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
                     </Select>
                 </div>
 
-                {/* 📦 Category Cards */}
-                {categories.length === 0 ? (
+                {filteredCategories.length === 0 ? (
                     <p className="text-muted-foreground">No categories found.</p>
                 ) : (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {categories.map((category) => (
+                    <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                        {filteredCategories.map((category) => (
                             <Card key={category.id} className="transition hover:scale-[1.01] hover:shadow-md">
                                 <CardHeader>
                                     <CardTitle>{category.name}</CardTitle>
@@ -180,8 +159,11 @@ export default function Dashboard({ categories, filters, allCategories }: Dashbo
                                                 >
                                                     <div>
                                                         <p className="font-medium">{item.name}</p>
-                                                        <p className="text-xs text-muted-foreground">
-                                                            ₱{Number(item.price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                                                        <p className="text-2xl text-accent-foreground">
+                                                            ₱
+                                                            {Number(item.price).toLocaleString('en-PH', {
+                                                                minimumFractionDigits: 2,
+                                                            })}
                                                         </p>
                                                     </div>
                                                     <div>{getStockBadge(item.stock)}</div>
